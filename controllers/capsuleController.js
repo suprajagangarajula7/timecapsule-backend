@@ -1,0 +1,125 @@
+const supabase = require("../config/supabaseClient");
+const { v4: uuidv4 } = require("uuid");
+
+// ================= CREATE =================
+exports.createCapsule = async (req, res) => {
+
+  const { title, message, unlock_at, images } = req.body;
+
+  const { data, error } =
+    await supabase
+      .from("capsules")
+      .insert([{
+        title,
+        message,
+        unlock_at,
+        images: images || [],
+        user_id: req.user.id,
+        is_locked: true,
+        share_token: uuidv4()
+      }])
+      .select();
+
+  if (error)
+    return res.status(400).json(error);
+
+  res.json(data);
+};
+
+// ================= GET ALL =================
+exports.getCapsules = async (req,res)=>{
+
+ const { data } =
+  await supabase
+   .from("capsules")
+   .select("*")
+   .eq("user_id",req.user.id)
+   .order("created_at",{ascending:false});
+
+ const updated = data.map(capsule=>{
+   const now = new Date();
+   const unlockTime =
+     new Date(capsule.unlock_at);
+
+   return {
+     ...capsule,
+     is_locked: now < unlockTime
+   };
+ });
+
+ res.json(updated);
+};
+
+// ================= GET SINGLE =================
+exports.getSingleCapsule = async (req,res)=>{
+
+ const { id } = req.params;
+
+ const { data,error } =
+   await supabase
+     .from("capsules")
+     .select("*")
+     .eq("id",id)
+     .eq("user_id",req.user.id)
+     .single();
+
+ if(error || !data)
+   return res.status(404)
+     .json({message:"Capsule not found"});
+
+ const now = new Date();
+ const unlockTime =
+   new Date(data.unlock_at);
+
+ res.json({
+   ...data,
+   is_locked: now < unlockTime
+ });
+};
+
+// ================= DELETE =================
+exports.deleteCapsule =
+async (req,res)=>{
+
+ const { id } = req.params;
+
+ await supabase
+   .from("capsules")
+   .delete()
+   .eq("id",id);
+
+ res.json({message:"Capsule Deleted"});
+};
+
+// ================= SHARE =================
+exports.getSharedCapsule =
+async(req,res)=>{
+
+ const { token } = req.params;
+
+ const { data } =
+   await supabase
+     .from("capsules")
+     .select("*")
+     .eq("share_token",token)
+     .single();
+
+ if(!data)
+   return res.status(404)
+     .json({message:"Not found"});
+
+ const now = new Date();
+ const unlock =
+   new Date(data.unlock_at);
+
+ if(now < unlock)
+   return res.json({
+     locked:true,
+     unlock_at:data.unlock_at
+   });
+
+ res.json({
+   locked:false,
+   capsule:data
+ });
+};
