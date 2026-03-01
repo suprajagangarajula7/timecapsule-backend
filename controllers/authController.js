@@ -10,11 +10,10 @@ exports.register = async (req, res) => {
       email,
       password,
       firstName,
-      lastName,
-      phone
+      lastName
     } = req.body;
 
-    /* CHECK USER */
+    /* CHECK EXISTING USER */
     const { data: existingUser } =
       await supabase
         .from("users")
@@ -39,9 +38,8 @@ exports.register = async (req, res) => {
         .insert([{
           email,
           password: hashedPassword,
-          firstName,
-          lastName,
-          phone
+          firstname: firstName,
+          lastname: lastName
         }])
         .select()
         .single();
@@ -49,7 +47,6 @@ exports.register = async (req, res) => {
     if (error)
       return res.status(400).json(error);
 
-    /* TOKEN */
     const token = jwt.sign(
       { id: newUser.id },
       process.env.JWT_SECRET,
@@ -57,14 +54,13 @@ exports.register = async (req, res) => {
     );
 
     res.json({
-      message: "User registered successfully",
       token,
-      user: newUser,
+      user: newUser
     });
 
-  } catch {
+  } catch (err) {
     res.status(500).json({
-      message: "Server error",
+      message: "Server error"
     });
   }
 };
@@ -72,6 +68,7 @@ exports.register = async (req, res) => {
 
 /* ================= LOGIN ================= */
 exports.login = async (req, res) => {
+
   try {
 
     const { email, password } = req.body;
@@ -85,7 +82,7 @@ exports.login = async (req, res) => {
 
     if (!user)
       return res.status(404).json({
-        message: "User not found",
+        message: "User not found"
       });
 
     const valid =
@@ -96,7 +93,7 @@ exports.login = async (req, res) => {
 
     if (!valid)
       return res.status(401).json({
-        message: "Wrong password",
+        message: "Wrong password"
       });
 
     const token = jwt.sign(
@@ -106,20 +103,19 @@ exports.login = async (req, res) => {
     );
 
     res.json({
-      message: "Login successful",
       token,
-      user,
+      user
     });
 
   } catch {
     res.status(500).json({
-      message: "Server error",
+      message: "Server error"
     });
   }
 };
 
 
-/* ================= GET LOGGED USER ================= */
+/* ================= GET USER ================= */
 exports.getMe = async (req, res) => {
 
   try {
@@ -127,16 +123,20 @@ exports.getMe = async (req, res) => {
     const { data, error } =
       await supabase
         .from("users")
-        .select(
-          "id,email,firstName,lastName,phone"
-        )
+        .select("id,email,firstname,lastname")
         .eq("id", req.user.id)
         .single();
 
     if (error)
       return res.status(400).json(error);
 
-    res.json(data);
+    /* ✅ SEND FRONTEND FORMAT */
+    res.json({
+      id: data.id,
+      email: data.email,
+      firstName: data.firstname,
+      lastName: data.lastname
+    });
 
   } catch {
     res.status(500).json({
