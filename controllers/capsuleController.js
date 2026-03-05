@@ -4,7 +4,18 @@ const { v4: uuidv4 } = require("uuid");
 // ================= CREATE =================
 exports.createCapsule = async (req, res) => {
 
-  const { title, message, unlock_at, images } = req.body;
+  const { 
+    title, 
+    message, 
+    unlock_at, 
+    images, 
+    videos, 
+    audios,
+    is_public,
+    password,
+    latitude,
+    longitude
+  } = req.body;
 
   const { data, error } =
     await supabase
@@ -14,9 +25,17 @@ exports.createCapsule = async (req, res) => {
         message,
         unlock_at,
         images: images || [],
+        videos: videos || [],
+        audios: audios || [],
         user_id: req.user.id,
-        is_locked: true,
-        share_token: uuidv4()
+        is_locked: new Date() < new Date(unlock_at),
+        share_token: uuidv4(),
+
+        // 🔥 NEW FIELDS
+        is_public: is_public || false,
+        password: password && password.trim() !== "" ? password : null,
+latitude: latitude !== "" && latitude !== undefined ? Number(latitude) : null,
+longitude: longitude !== "" && longitude !== undefined ? Number(longitude) : null
       }])
       .select();
 
@@ -29,12 +48,15 @@ exports.createCapsule = async (req, res) => {
 // ================= GET ALL =================
 exports.getCapsules = async (req,res)=>{
 
- const { data } =
+ const { data,error } =
   await supabase
    .from("capsules")
    .select("*")
    .eq("user_id",req.user.id)
    .order("created_at",{ascending:false});
+
+ if(error)
+   return res.status(400).json(error);
 
  const updated = data.map(capsule=>{
    const now = new Date();
@@ -51,30 +73,31 @@ exports.getCapsules = async (req,res)=>{
 };
 
 // ================= GET SINGLE =================
-exports.getSingleCapsule = async (req,res)=>{
+// ================= GET SINGLE =================
+exports.getSingleCapsule = async (req, res) => {
 
- const { id } = req.params;
+  const { id } = req.params;
 
- const { data,error } =
-   await supabase
-     .from("capsules")
-     .select("*")
-     .eq("id",id)
-     .eq("user_id",req.user.id)
-     .single();
+  const { data, error } = await supabase
+    .from("capsules")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", req.user.id)
+    .single();
 
- if(error || !data)
-   return res.status(404)
-     .json({message:"Capsule not found"});
+  if (error || !data)
+    return res.status(404)
+      .json({ message: "Capsule not found" });
 
- const now = new Date();
- const unlockTime =
-   new Date(data.unlock_at);
+  const now = new Date();
+  const unlockTime = new Date(data.unlock_at);
 
- res.json({
-   ...data,
-   is_locked: now < unlockTime
- });
+  const updatedCapsule = {
+    ...data,
+    is_locked: now < unlockTime
+  };
+
+  res.json(updatedCapsule);
 };
 
 // ================= DELETE =================
@@ -117,6 +140,14 @@ async(req,res)=>{
      locked:true,
      unlock_at:data.unlock_at
    });
+
+ // 🔥 If private, block access
+ if(!data.is_public){
+   return res.json({
+     locked:false,
+     message:"This capsule is private"
+   });
+ }
 
  res.json({
    locked:false,
