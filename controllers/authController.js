@@ -144,3 +144,65 @@ exports.getMe = async (req, res) => {
     });
   }
 };
+
+/* ================= UPDATE PROFILE ================= */
+exports.updateProfile = async (req, res) => {
+
+  try {
+
+    const {
+      firstName,
+      lastName,
+      email,
+      password
+    } = req.body;
+
+    let updates = {};
+
+    /* UPDATE NAME */
+    if(firstName)
+      updates.firstname = firstName;
+
+    if(lastName)
+      updates.lastname = lastName;
+
+    /* UPDATE EMAIL */
+    if(email)
+      updates.email = email;
+
+    /* UPDATE PASSWORD */
+    if(password && password.trim() !== ""){
+
+      const hashedPassword =
+        await bcrypt.hash(password,10);
+
+      updates.password = hashedPassword;
+    }
+
+    const { data, error } =
+      await supabase
+        .from("users")
+        .update(updates)
+        .eq("id", req.user.id)
+        .select()
+        .single();
+
+    if(error)
+      return res.status(400).json(error);
+
+    res.json({
+      id: data.id,
+      email: data.email,
+      firstName: data.firstname,
+      lastName: data.lastname
+    });
+
+  } catch {
+
+    res.status(500).json({
+      message:"Server error"
+    });
+
+  }
+
+};
