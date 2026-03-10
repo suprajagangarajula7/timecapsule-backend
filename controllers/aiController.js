@@ -14,7 +14,7 @@ const generateSummary = async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest"
+      model: "gemini-1.5-flash"
     });
 
     const prompt = `Summarize this text in 2 short sentences:\n\n${text}`;
