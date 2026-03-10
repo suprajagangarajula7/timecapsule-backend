@@ -4,14 +4,17 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const generateSummary = async (req, res) => {
   try {
+
     const { text } = req.body;
+
+    console.log("Incoming request body:", req.body);
 
     if (!text) {
       return res.status(400).json({ error: "Text is required" });
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-pro"
+      model: "gemini-1.5-flash-latest"
     });
 
     const prompt = `Summarize this text in 2 short sentences:\n\n${text}`;
@@ -23,8 +26,13 @@ const generateSummary = async (req, res) => {
     res.json({ summary });
 
   } catch (error) {
-    console.error("Gemini error:", error);
-    res.status(500).json({ error: "AI summary failed" });
+
+    console.error("Gemini ERROR:", error);
+
+    res.status(500).json({
+      error: "AI summary failed"
+    });
+
   }
 };
 
