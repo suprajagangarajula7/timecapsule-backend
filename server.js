@@ -5,6 +5,7 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const capsuleRoutes = require("./routes/capsuleRoutes");
 const journalRoutes = require("./routes/journalRoutes");
+const aiRoutes = require("./routes/aiRoutes");   // ⭐ NEW
 
 const app = express();
 
@@ -20,6 +21,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/capsules", capsuleRoutes);
 
 app.use("/api/journal", journalRoutes);
+
+app.use("/api/ai", aiRoutes);   // ⭐ NEW
 
 /* ---------------- TEST ROUTE ---------------- */
 
