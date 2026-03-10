@@ -1,7 +1,9 @@
 const axios = require("axios");
 
 const generateSummary = async (req, res) => {
+
   try {
+
     const { text } = req.body;
 
     console.log("Incoming request body:", req.body);
@@ -11,22 +13,17 @@ const generateSummary = async (req, res) => {
     }
 
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-001:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [
           {
             parts: [
               {
-                text: `Summarize this text in 2 short sentences:\n\n${text}`,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
+                text: `Summarize this text in 2 short sentences:\n\n${text}`
+              }
+            ]
+          }
+        ]
       }
     );
 
@@ -37,12 +34,14 @@ const generateSummary = async (req, res) => {
 
   } catch (error) {
 
-    console.error("Gemini API ERROR:", error.response?.data || error.message);
+    console.error("Gemini ERROR:", error.response?.data || error);
 
     res.status(500).json({
-      error: "AI summary failed",
+      error: "AI summary failed"
     });
+
   }
+
 };
 
 module.exports = { generateSummary };
