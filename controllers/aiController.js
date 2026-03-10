@@ -6,8 +6,6 @@ const generateSummary = async (req, res) => {
 
   try {
 
-    console.log("Incoming request body:", req.body);
-
     const { text } = req.body;
 
     if (!text) {
@@ -17,7 +15,7 @@ const generateSummary = async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest"
+      model: "gemini-1.5-flash"
     });
 
     const prompt = `
@@ -38,8 +36,7 @@ ${text}
     console.error("Gemini ERROR:", error);
 
     res.status(500).json({
-      error: "AI summary failed",
-      message: error.message
+      error: "AI summary failed"
     });
 
   }
