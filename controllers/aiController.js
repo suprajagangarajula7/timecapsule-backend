@@ -35,15 +35,17 @@ const generateSummary = async (req, res) => {
       summary
     });
 
-  } catch (error) {
+} catch (error) {
 
-    console.error(error);
+  console.error("Gemini Error:", error.message);
+  console.error(error);
 
-    res.status(500).json({
-      error: "AI summary failed"
-    });
+  res.status(500).json({
+    error: "AI summary failed",
+    details: error.message
+  });
 
-  }
+}
 
 };
 
