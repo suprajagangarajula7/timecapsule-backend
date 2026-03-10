@@ -6,6 +6,8 @@ const generateSummary = async (req, res) => {
 
   try {
 
+    console.log("Incoming request body:", req.body);
+
     const { text } = req.body;
 
     if (!text) {
@@ -27,18 +29,17 @@ ${text}
 
     const result = await model.generateContent(prompt);
 
-    const response = await result.response;
-
-    const summary = response.text();
+    const summary = result.response.text();
 
     res.json({ summary });
 
   } catch (error) {
 
-    console.log(error);
+    console.error("Gemini ERROR:", error);
 
     res.status(500).json({
-      error: "AI summary failed"
+      error: "AI summary failed",
+      message: error.message
     });
 
   }
