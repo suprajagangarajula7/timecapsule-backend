@@ -19,11 +19,11 @@ const generateSummary = async (req, res) => {
     });
 
     const prompt = `
-    Summarize the following memory in 2 short sentences.
+Summarize the following memory in 2 short sentences.
 
-    Memory:
-    ${text}
-    `;
+Memory:
+${text}
+`;
 
     const result = await model.generateContent(prompt);
 
@@ -31,21 +31,17 @@ const generateSummary = async (req, res) => {
 
     const summary = response.text();
 
-    res.json({
-      summary
+    res.json({ summary });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "AI summary failed"
     });
 
-} catch (error) {
-
-  console.error("Gemini Error:", error.message);
-  console.error(error);
-
-  res.status(500).json({
-    error: "AI summary failed",
-    details: error.message
-  });
-
-}
+  }
 
 };
 
