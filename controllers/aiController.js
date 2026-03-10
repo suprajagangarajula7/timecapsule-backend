@@ -1,9 +1,7 @@
 const axios = require("axios");
 
 const generateSummary = async (req, res) => {
-
   try {
-
     const { text } = req.body;
 
     console.log("Incoming request body:", req.body);
@@ -19,11 +17,16 @@ const generateSummary = async (req, res) => {
           {
             parts: [
               {
-                text: `Summarize this text in 2 short sentences:\n\n${text}`
-              }
-            ]
-          }
-        ]
+                text: `Summarize this text in 2 short sentences:\n\n${text}`,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     );
 
@@ -34,14 +37,12 @@ const generateSummary = async (req, res) => {
 
   } catch (error) {
 
-    console.error("Gemini ERROR:", error.response?.data || error);
+    console.error("Gemini API ERROR:", error.response?.data || error.message);
 
     res.status(500).json({
-      error: "AI summary failed"
+      error: "AI summary failed",
     });
-
   }
-
 };
 
 module.exports = { generateSummary };
