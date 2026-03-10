@@ -1,8 +1,7 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const axios = require("axios");
 
 const generateSummary = async (req, res) => {
+
   try {
 
     const { text } = req.body;
@@ -13,27 +12,36 @@ const generateSummary = async (req, res) => {
       return res.status(400).json({ error: "Text is required" });
     }
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash"
-    });
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: `Summarize this text in 2 short sentences:\n\n${text}`
+              }
+            ]
+          }
+        ]
+      }
+    );
 
-    const prompt = `Summarize this text in 2 short sentences:\n\n${text}`;
-
-    const result = await model.generateContent(prompt);
-
-    const summary = result.response.text();
+    const summary =
+      response.data.candidates[0].content.parts[0].text;
 
     res.json({ summary });
 
   } catch (error) {
 
-    console.error("Gemini ERROR:", error);
+    console.error("Gemini ERROR:", error.response?.data || error);
 
     res.status(500).json({
       error: "AI summary failed"
     });
 
   }
+
 };
 
 module.exports = { generateSummary };
